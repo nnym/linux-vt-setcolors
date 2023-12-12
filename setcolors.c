@@ -22,16 +22,6 @@
 " -c, --console   Indicate console device to be used.\n"\
 " -h, --help      Show this help text"
 
-static const char *console_paths[] = {
-	"/proc/self/fd/0",
-	"/dev/tty",
-	"/dev/tty0",
-	"/dev/vc/0",
-	"/dev/systty",
-	"/dev/console",
-	NULL
-};
-
 static const char default_color_set[PALETTE_SIZE][7] = {
 	"000000","aa0000","00aa00","aa5500",
 	"0000aa","aa00aa","00aaaa","aaaaaa",
@@ -76,23 +66,11 @@ get_palette_from_color_set(const char colors[][7])
 static int
 get_console_fd(const char *console_path)
 {
-	int i, fd;
+	int fd = 0;
 	char type = '\0';
 
-	// Use one of the default console paths
-	if ( ! console_path)
-	{
-		for (i = 0; console_paths[i]; ++i)
-		{
-			if ((fd = get_console_fd(console_paths[i])) > 0)
-				return fd;
-		}
-
-		return -1;
-	}
-
 	// Attempt to open the FD, and make sure it's a tty
-	if ((fd = open(console_path, O_RDWR | O_NOCTTY)) < 0)
+	if (console_path && (fd = open(console_path, O_RDWR | O_NOCTTY)) < 0)
 		return -1;
 
 	// Make sure the tty is a linux VT101 terminal
